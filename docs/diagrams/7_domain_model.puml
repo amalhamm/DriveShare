@@ -1,0 +1,66 @@
+@startuml
+!include style.iuml
+title Domain Model (package driveshare.model)
+class User {
+  - id : int
+  - email : String
+  - fullName : String
+  - balance : double
+}
+class SecurityQuestion {
+  - userId : int
+  - order : int
+  - question : String
+  - answerHash : String
+  - answerSalt : String
+}
+class Car {
+  - id, ownerId, model, year, mileage
+  - pickupLocation, pricePerDay
+  - availableFrom, availableTo, active
+  - color, seats, transmission, fuelType, description
+  + getTitle() : String
+  + coversDates(start, end) : boolean
+}
+class Booking {
+  - id, carId, renterId, ownerId
+  - startDate, endDate : LocalDate
+  - totalPrice : double
+  - status : BookingStatus
+  + {static} countDays(start, end) : long
+  + getDays() : long
+}
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  DECLINED
+  CANCELLED
+  + blocksCar() : boolean
+}
+class Message {
+  - senderId, receiverId
+  - body : String
+  - sentAt : LocalDateTime
+}
+class Notification {
+  - userId : int
+  - message : String
+  - createdAt : LocalDateTime
+  - read : boolean
+}
+class Watch {
+  - renterId, carId
+  - maxPrice : Double
+  - notifyWhenAvailable : boolean
+}
+User "1" -- "3" SecurityQuestion
+User "1" -- "*" Car : owns >
+User "1" -- "*" Booking : rents >
+Car "1" -- "*" Booking
+Booking --> BookingStatus
+User "1" -- "*" Message : sends / receives
+User "1" -- "*" Notification
+User "1" -- "*" Watch
+Car "1" -- "*" Watch
+@enduml

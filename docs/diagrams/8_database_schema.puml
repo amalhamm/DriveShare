@@ -1,0 +1,97 @@
+@startuml
+!include style.iuml
+title DriveShare - Database Schema (SQLite)
+hide circle
+skinparam linetype ortho
+entity users {
+  * id : INTEGER <<PK>>
+  --
+  * email : TEXT <<UNIQUE>>
+  * full_name : TEXT
+  * password_hash : TEXT
+  * password_salt : TEXT
+  * balance : REAL
+  * created_at : TEXT
+}
+entity security_questions {
+  * id : INTEGER <<PK>>
+  --
+  * user_id : INTEGER <<FK>>
+  * question_order : INTEGER (1-3)
+  * question : TEXT
+  * answer_hash : TEXT
+  * answer_salt : TEXT
+}
+entity cars {
+  * id : INTEGER <<PK>>
+  --
+  * owner_id : INTEGER <<FK>>
+  * model : TEXT
+  * year : INTEGER
+  * mileage : INTEGER
+  * pickup_location : TEXT
+  * price_per_day : REAL
+  * available_from : TEXT
+  * available_to : TEXT
+  * is_active : INTEGER
+  color : TEXT
+  seats : INTEGER
+  transmission : TEXT
+  fuel_type : TEXT
+  description : TEXT
+}
+entity bookings {
+  * id : INTEGER <<PK>>
+  --
+  * car_id : INTEGER <<FK>>
+  * renter_id : INTEGER <<FK>>
+  * start_date : TEXT
+  * end_date : TEXT
+  * total_price : REAL
+  * status : TEXT
+  * created_at : TEXT
+}
+entity payments {
+  * id : INTEGER <<PK>>
+  --
+  * booking_id : INTEGER <<FK, UNIQUE>>
+  * payer_id : INTEGER <<FK>>
+  * payee_id : INTEGER <<FK>>
+  * amount : REAL
+  * paid_at : TEXT
+}
+entity messages {
+  * id : INTEGER <<PK>>
+  --
+  * sender_id : INTEGER <<FK>>
+  * receiver_id : INTEGER <<FK>>
+  * body : TEXT
+  * sent_at : TEXT
+}
+entity watches {
+  * id : INTEGER <<PK>>
+  --
+  * renter_id : INTEGER <<FK>>
+  * car_id : INTEGER <<FK>>
+  max_price : REAL
+  * notify_when_available : INTEGER
+  * created_at : TEXT
+}
+entity notifications {
+  * id : INTEGER <<PK>>
+  --
+  * user_id : INTEGER <<FK>>
+  * message : TEXT
+  * created_at : TEXT
+  * is_read : INTEGER
+}
+users ||--|{ security_questions
+users ||--o{ cars
+users ||--o{ bookings
+cars ||--o{ bookings
+bookings ||--o| payments
+users ||--o{ messages
+users ||--o{ watches
+cars ||--o{ watches
+users ||--o{ notifications
+@enduml

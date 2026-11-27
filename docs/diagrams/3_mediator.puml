@@ -1,0 +1,65 @@
+@startuml
+!include style.iuml
+title Mediator - UI Components (package driveshare.ui)
+interface UIMediator <<Mediator>> {
+  + notify(sender : UIComponent, event : UIEvent, data : Object) : void
+}
+class DriveShareMediator <<ConcreteMediator>> {
+  - frame : MainFrame
+  - tabs : JTabbedPane
+  - login, register, header, search, myCars,
+    bookings, watchlist, messages, notifications
+  + registerComponents(...) : void
+  + notify(sender, event, data) : void
+  - refreshAll() : void
+}
+abstract class UIComponent <<Colleague>> {
+  # mediator : UIMediator
+  # services : Services
+  + refresh() : void
+}
+class JPanel
+enum UIEvent {
+  SHOW_LOGIN
+  SHOW_REGISTER
+  REGISTERED
+  LOGIN_SUCCESS
+  LOGOUT
+  LISTING_SAVED
+  BOOKING_CHANGED
+  PAYMENT_COMPLETED
+  WATCH_CHANGED
+  OPEN_CHAT
+  MESSAGE_SENT
+  NOTIFICATIONS_READ
+  SHOW_NOTIFICATIONS
+}
+class MainFrame {
+  + showScreen(name : String) : void
+}
+class "LoginPanel" as LP
+class "RegisterPanel" as RP
+class "HeaderPanel" as HP
+class "SearchPanel" as SP
+class "MyCarsPanel" as MP
+class "BookingsPanel" as BP
+class "WatchlistPanel" as WP
+class "MessagesPanel" as MsP
+class "NotificationsPanel" as NP
+UIMediator <|.. DriveShareMediator
+JPanel <|-- UIComponent
+UIComponent --> UIMediator : mediator
+UIComponent <|-- LP
+UIComponent <|-- RP
+UIComponent <|-- HP
+UIComponent <|-- SP
+UIComponent <|-- MP
+UIComponent <|-- BP
+UIComponent <|-- WP
+UIComponent <|-- MsP
+UIComponent <|-- NP
+DriveShareMediator --> MainFrame
+DriveShareMediator --> "9" UIComponent : coordinates
+MainFrame ..> DriveShareMediator : creates & registers
+UIMediator ..> UIEvent
+@enduml

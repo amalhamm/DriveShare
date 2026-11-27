@@ -1,0 +1,48 @@
+@startuml
+!include style.iuml
+title Proxy - Payment Integration (package driveshare.payment)
+interface PaymentService <<Subject>> {
+  + pay(booking : Booking) : String
+}
+class PaymentProxy <<Proxy>> {
+  - realService : RealPaymentService
+  - bookingDAO : BookingDAO
+  - userDAO : UserDAO
+  - notificationService : NotificationService
+  + pay(booking : Booking) : String
+}
+class RealPaymentService <<RealSubject>> {
+  - bookingDAO : BookingDAO
+  + pay(booking : Booking) : String
+}
+class PaymentException
+class BookingsPanel <<Client>> {
+  - pay() : void
+}
+class Services {
+  + payment : PaymentService
+}
+class SessionManager <<Singleton>>
+class NotificationService
+PaymentService <|.. PaymentProxy
+PaymentService <|.. RealPaymentService
+PaymentProxy --> "0..1" RealPaymentService : lazily creates\n& delegates
+BookingsPanel --> PaymentService : services.payment.pay(...)
+Services --> PaymentProxy : payment = new PaymentProxy()
+PaymentProxy ..> SessionManager : checks login
+PaymentProxy ..> NotificationService : notifies renter & owner
+PaymentService ..> PaymentException : throws
+note right of PaymentProxy
+  Checks before delegating:
+  - user is logged in
+  - user is the booking's renter
+  - booking is CONFIRMED (not already PAID)
+  - amount > 0 and balance is enough
+end note
+note right of RealPaymentService
+  One DB transaction:
+  renter balance - amount,
+  owner balance + amount,
+  insert payment, booking -> PAID
+end note
+@enduml

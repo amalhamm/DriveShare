@@ -1,0 +1,61 @@
+@startuml
+!include style.iuml
+title Observer - Watched Car Notifications (package driveshare.observer)
+interface CarSubject <<Subject>> {
+  + attach(observer : CarObserver) : void
+  + detach(observer : CarObserver) : void
+  + notifyObservers(car : Car, event : CarEvent) : void
+}
+interface CarObserver <<Observer>> {
+  + update(car : Car, event : CarEvent) : void
+  + getCarId() : int
+}
+class CarWatchNotifier <<ConcreteSubject>> {
+  - observersByCar : Map<Integer, List<CarObserver>>
+  + loadFromDatabase() : void
+  + attach(observer) : void
+  + detach(observer) : void
+  + detachWatch(watchId : int) : void
+  + notifyObservers(car, event) : void
+}
+class WatchObserver <<ConcreteObserver>> {
+  - watch : Watch
+  - notificationService : NotificationService
+  + update(car : Car, event : CarEvent) : void
+  + getCarId() : int
+  + getWatchId() : int
+}
+enum CarEvent {
+  PRICE_CHANGED
+  AVAILABILITY_CHANGED
+}
+class Watch {
+  - renterId : int
+  - carId : int
+  - maxPrice : Double
+  - notifyWhenAvailable : boolean
+}
+class CarService {
+  + updateListing(car : Car) : Car
+}
+class BookingService {
+  + decline(booking) : void
+  + cancel(booking) : void
+}
+class WatchService {
+  + watch(car, maxPrice, notifyWhenAvailable) : Watch
+  + remove(watch) : void
+}
+class NotificationService {
+  + notifyUser(userId, message) : void
+}
+CarSubject <|.. CarWatchNotifier
+CarObserver <|.. WatchObserver
+CarWatchNotifier o--> "*" CarObserver : observers
+WatchObserver --> Watch
+WatchObserver ..> NotificationService : notifies renter
+CarService --> CarSubject : notifyObservers\n(price / availability changed)
+BookingService --> CarSubject : notifyObservers\n(dates freed)
+WatchService --> CarWatchNotifier : attach / detachWatch
+CarObserver ..> CarEvent
+@enduml

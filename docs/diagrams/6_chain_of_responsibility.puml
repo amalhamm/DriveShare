@@ -1,0 +1,50 @@
+@startuml
+!include style.iuml
+title Chain of Responsibility - Password Recovery (package driveshare.recovery)
+abstract class RecoveryHandler <<Handler>> {
+  - next : RecoveryHandler
+  + setNext(next : RecoveryHandler) : RecoveryHandler
+  + handle(request : RecoveryRequest) : boolean
+  # {abstract} verify(request : RecoveryRequest) : boolean
+}
+class SecurityQuestionHandler <<ConcreteHandler>> {
+  - securityQuestion : SecurityQuestion
+  # verify(request : RecoveryRequest) : boolean
+}
+class RecoveryRequest {
+  - user : User
+  - answerProvider : AnswerProvider
+  - failedQuestion : int
+  - cancelled : boolean
+}
+interface AnswerProvider {
+  + askQuestion(number : int, question : String) : String
+}
+class PasswordRecoveryService <<Client>> {
+  + findUser(email) : User
+  + buildChain(user : User) : RecoveryHandler
+  + verifyIdentity(request) : boolean
+}
+class SecurityQuestion {
+  - order : int
+  - question : String
+  - answerHash : String
+  - answerSalt : String
+}
+class LoginPanel {
+  - recoverPassword() : void
+}
+RecoveryHandler <|-- SecurityQuestionHandler
+RecoveryHandler --> "0..1" RecoveryHandler : next
+SecurityQuestionHandler --> SecurityQuestion
+RecoveryHandler ..> RecoveryRequest : handles
+RecoveryRequest --> AnswerProvider
+PasswordRecoveryService ..> SecurityQuestionHandler : builds Q1 -> Q2 -> Q3
+LoginPanel ..> PasswordRecoveryService
+LoginPanel ..> AnswerProvider : provides (lambda\nwith dialog box)
+note bottom of RecoveryHandler
+  handle(): if verify() fails -> stop (false);
+  else if there is no next -> true;
+  else return next.handle(request)
+end note
+@enduml

@@ -1,0 +1,60 @@
+@startuml
+!include style.iuml
+title Builder - Car Listing Creation (package driveshare.model)
+class CarListingBuilder <<Builder>> {
+  ~ id, ownerId, ownerName, model, year, mileage,
+    pickupLocation, pricePerDay,
+    availableFrom, availableTo, active
+  ~ color = "Not specified"
+  ~ seats = 5
+  ~ transmission = "Automatic"
+  ~ fuelType = "Gasoline"
+  ~ description = ""
+  + CarListingBuilder(ownerId, model, year)
+  + {static} from(car : Car) : CarListingBuilder
+  + id(int) : CarListingBuilder
+  + mileage(int) : CarListingBuilder
+  + pickupLocation(String) : CarListingBuilder
+  + pricePerDay(double) : CarListingBuilder
+  + availability(from, to) : CarListingBuilder
+  + active(boolean) : CarListingBuilder
+  + color(String) : CarListingBuilder
+  + seats(int) : CarListingBuilder
+  + transmission(String) : CarListingBuilder
+  + fuelType(String) : CarListingBuilder
+  + description(String) : CarListingBuilder
+  + build() : Car
+}
+class Car <<Product>> {
+  - id, ownerId, ownerName, model, year, mileage
+  - pickupLocation, pricePerDay
+  - availableFrom, availableTo, active
+  - color, seats, transmission, fuelType, description
+  ~ Car(b : CarListingBuilder)
+  + getTitle() : String
+  + coversDates(start, end) : boolean
+  + getters ...
+}
+class CarFormDialog <<Client>> {
+  - save() : void
+}
+class MyCarsPanel <<Client>> {
+  - updatePrice() : void
+  - updateAvailability() : void
+}
+class CarDAO <<Client>> {
+  - toCar(rs : ResultSet) : Car
+}
+class DemoData <<Client>>
+CarListingBuilder ..> Car : build() creates
+CarFormDialog ..> CarListingBuilder : new + chained steps + build()
+MyCarsPanel ..> CarListingBuilder : from(car).pricePerDay(..).build()
+CarDAO ..> CarListingBuilder : database row -> Car
+DemoData ..> CarListingBuilder
+note bottom of CarListingBuilder
+  build() validates required details
+  (model, year, mileage, location, price,
+  availability dates, seats) and throws
+  IllegalStateException if invalid.
+end note
+@enduml

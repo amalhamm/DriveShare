@@ -1,0 +1,54 @@
+@startuml
+!include style.iuml
+title Singleton - User Session (package driveshare.auth)
+class SessionManager <<Singleton>> {
+  - {static} instance : SessionManager
+  - currentUser : User
+  - sessionToken : String
+  - loginTime : LocalDateTime
+  - SessionManager()
+  + {static} getInstance() : SessionManager
+  + startSession(user : User) : void
+  + endSession() : void
+  + isLoggedIn() : boolean
+  + getCurrentUser() : User
+  + requireUser() : User
+  + refreshUser() : void
+  + getLoginTime() : LocalDateTime
+}
+class AuthService {
+  + register(...) : User
+  + login(email, password) : User
+  + logout() : void
+  + resetPassword(userId, newPassword, confirm) : void
+}
+class PasswordHasher <<utility>> {
+  + {static} newSalt() : String
+  + {static} hash(secret, salt) : String
+  + {static} verify(secret, hash, salt) : boolean
+  + {static} normalizeAnswer(answer) : String
+}
+class User {
+  - id : int
+  - email : String
+  - fullName : String
+  - balance : double
+}
+SessionManager --> "0..1" User : currentUser
+SessionManager --> SessionManager : instance
+AuthService ..> SessionManager : startSession / endSession
+AuthService ..> PasswordHasher : hash / verify
+class "CarService, BookingService,\nWatchService, MessageService" as Clients
+class PaymentProxy
+class "UI screens\n(HeaderPanel, MyCarsPanel, ...)" as Screens
+Clients ..> SessionManager : getInstance().requireUser()
+PaymentProxy ..> SessionManager : isLoggedIn()
+Screens ..> SessionManager : getInstance()
+note right of SessionManager
+  Private constructor + static instance:
+  exactly one session object exists.
+  getInstance() is synchronized.
+  A random SecureRandom token is created
+  at login and cleared at logout.
+end note
+@enduml

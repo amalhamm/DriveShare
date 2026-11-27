@@ -1,0 +1,52 @@
+@startuml
+!include style.iuml
+title DriveShare - Architecture Overview (layers and packages)
+skinparam packageStyle rectangle
+set separator none
+package "Presentation (driveshare.ui)" {
+  class MainFrame
+  class DriveShareMediator <<Mediator>>
+  abstract class UIComponent
+  class "LoginPanel, RegisterPanel, HeaderPanel,\nSearchPanel, MyCarsPanel, BookingsPanel,\nWatchlistPanel, MessagesPanel, NotificationsPanel" as Panels
+}
+package "Business logic" {
+  class Services
+  class "CarService, BookingService, WatchService,\nMessageService, NotificationService" as Svc
+  class SessionManager <<Singleton>>
+  class AuthService
+  class PasswordRecoveryService
+  class SecurityQuestionHandler <<Chain of Resp.>>
+  class CarWatchNotifier <<Subject>>
+  class WatchObserver <<Observer>>
+  class PaymentProxy <<Proxy>>
+  class RealPaymentService
+}
+package "Model (driveshare.model)" {
+  class "User, Car, Booking, Message,\nNotification, Watch, SecurityQuestion" as Models
+  class CarListingBuilder <<Builder>>
+}
+package "Data access (driveshare.db)" {
+  class "Database, UserDAO, CarDAO, BookingDAO,\nMessageDAO, NotificationDAO, WatchDAO" as DAOs
+}
+class "driveshare.db (SQLite file)" as DB <<database>>
+MainFrame --> DriveShareMediator
+UIComponent <|-- Panels
+UIComponent --> DriveShareMediator
+Panels ..> Services
+Services --> Svc
+Services --> AuthService
+Services --> PasswordRecoveryService
+Services --> PaymentProxy
+Svc --> CarWatchNotifier
+Svc ..> SessionManager
+CarWatchNotifier o-- WatchObserver
+PaymentProxy --> RealPaymentService
+PasswordRecoveryService ..> SecurityQuestionHandler
+AuthService ..> SessionManager
+Svc ..> DAOs
+RealPaymentService ..> DAOs
+DAOs ..> Models
+DAOs ..> CarListingBuilder
+CarListingBuilder ..> Models
+DAOs --> DB
+@enduml
