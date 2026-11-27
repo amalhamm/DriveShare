@@ -1,0 +1,8 @@
+out/
+*.class
+driveshare.db
+sources.txt
+.DS_Store
+.idea/
+.vscode/
+*.iml
